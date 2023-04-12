@@ -6,16 +6,20 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { CacheProvider, EmotionCache } from "@emotion/react";
 import theme from "@/utils/theme";
 import createEmotionCache from "@/utils/createEmotionCache";
+import ResponsiveAppBar from "@/components/AppBar";
+import { FC } from "react";
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
 
 export interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
+  Component: FC<any> & { getLayout?: (page: JSX.Element) => JSX.Element };
 }
 
 export default function MyApp(props: MyAppProps) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
+
   return (
     <CacheProvider value={emotionCache}>
       <Head>
@@ -26,7 +30,16 @@ export default function MyApp(props: MyAppProps) {
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Component {...pageProps} />
+
+        {/* Check if component layout is defined */}
+        {Component.getLayout ? (
+          Component.getLayout(<Component {...pageProps} />)
+        ) : (
+          <>
+            <ResponsiveAppBar />
+            <Component {...pageProps} />
+          </>
+        )}
       </ThemeProvider>
     </CacheProvider>
   );
