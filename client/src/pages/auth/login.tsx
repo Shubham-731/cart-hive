@@ -11,15 +11,21 @@ import Grid from "@mui/material/Grid";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import { useFormik } from "formik";
-
-interface FormValues {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
+import { useAuth } from "@/contexts/authContext";
+import { useEffect } from "react";
+import Router from "next/router";
+import { CircularProgress } from "@mui/material";
 
 export default function Login() {
-  const initialValues: FormValues = {
+  const { user, login } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      Router.push("/");
+    }
+  }, [user]);
+
+  const initialValues: LoginFormValTypes = {
     email: "",
     password: "",
     rememberMe: false,
@@ -28,7 +34,8 @@ export default function Login() {
   const formik = useFormik({
     initialValues,
     async onSubmit(values, formikHelpers) {
-      console.log(values);
+      await login(values);
+      formikHelpers.setSubmitting(false);
     },
   });
 
@@ -114,7 +121,11 @@ export default function Login() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              {formik.isValidating === false && formik.isSubmitting === true ? (
+                <CircularProgress sx={{ color: "white" }} size={24} />
+              ) : (
+                "Sign In"
+              )}
             </Button>
             <Grid container>
               <Grid item xs>

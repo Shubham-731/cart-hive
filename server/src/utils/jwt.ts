@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 const JWT_SECRET: string = process.env.JWT_SECRET || "example-secret";
 
@@ -7,4 +7,17 @@ const generateToken = (id: string): string => {
   return token;
 };
 
-export { generateToken };
+const verifyToken = (token: string): JwtPayload | string | null => {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded) {
+      return decoded;
+    }
+
+    return null;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export { generateToken, verifyToken };

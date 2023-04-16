@@ -7,6 +7,8 @@ import {
   Typography,
 } from "@mui/material";
 import Image from "next/image";
+import Head from "next/head";
+import { useState, useEffect } from "react";
 
 const OrderedProduct = () => {
   return (
@@ -105,19 +107,32 @@ const OrderedProduct = () => {
 };
 
 const Orders = () => {
-  return (
-    <Container maxWidth="lg" sx={{ padding: "2rem 0" }}>
-      <Typography variant="h4" component="h1" mb={2} textAlign="center">
-        Your Orders
-      </Typography>
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState([]);
 
-      <Stack spacing={2} divider={<Divider />}>
-        <OrderedProduct />
-        <OrderedProduct />
-        <OrderedProduct />
-        <OrderedProduct />
-      </Stack>
-    </Container>
+  return (
+    <>
+      <Head>
+        <title>Orders | Cart Hive</title>
+      </Head>
+
+      <Container maxWidth="lg" sx={{ padding: "2rem 0" }}>
+        <Typography variant="h4" component="h1" textAlign="center" gutterBottom>
+          Your Orders
+        </Typography>
+
+        <Stack spacing={2} divider={<Divider />}>
+          <OrderedProduct />
+          <OrderedProduct />
+          <OrderedProduct />
+          <OrderedProduct />
+        </Stack>
+
+        {/* <Typography color="error" textAlign={"center"}>
+          No orders yet!
+        </Typography> */}
+      </Container>
+    </>
   );
 };
 

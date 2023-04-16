@@ -11,16 +11,18 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import { Badge } from "@mui/material";
-import { ShoppingCart, Logout, Login, RouteRounded } from "@mui/icons-material";
+import { ShoppingCart, Logout, Login } from "@mui/icons-material";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useAuth } from "@/contexts/authContext";
+import { useCart } from "@/contexts/cartContext";
 
 const pages = [
-  {
+  /* {
     name: "Dashboard",
     link: "/dashboard",
     role: "seller",
-  },
+  }, */
   {
     name: "Products",
     link: "/",
@@ -31,7 +33,7 @@ const pages = [
   },
 ];
 
-function ResponsiveAppBar({ role }: { role?: string }) {
+function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -44,6 +46,9 @@ function ResponsiveAppBar({ role }: { role?: string }) {
 
   const router = useRouter();
   const pathname = router.pathname;
+
+  const { user, logout } = useAuth();
+  const { cart } = useCart();
 
   return (
     <AppBar position="static">
@@ -144,24 +149,28 @@ function ResponsiveAppBar({ role }: { role?: string }) {
                   aria-label="show 4 new mails"
                   color="inherit"
                 >
-                  <Badge badgeContent={4} color="error">
+                  <Badge badgeContent={cart.length} color="error">
                     <ShoppingCart />
                   </Badge>
                 </IconButton>
               </Link>
             </Tooltip>
-            <Tooltip title="Login" arrow>
-              <Link href={"/auth/login"} style={{ color: "inherit" }}>
-                <IconButton size="large" color="inherit">
-                  <Login />
+            {!user && (
+              <Tooltip title="Login" arrow>
+                <Link href={"/auth/login"} style={{ color: "inherit" }}>
+                  <IconButton size="large" color="inherit">
+                    <Login />
+                  </IconButton>
+                </Link>
+              </Tooltip>
+            )}
+            {user && (
+              <Tooltip title="Logout" arrow>
+                <IconButton size="large" color="inherit" onClick={logout}>
+                  <Logout />
                 </IconButton>
-              </Link>
-            </Tooltip>
-            <Tooltip title="Logout" arrow>
-              <IconButton size="large" color="inherit">
-                <Logout />
-              </IconButton>
-            </Tooltip>
+              </Tooltip>
+            )}
           </Box>
         </Toolbar>
       </Container>

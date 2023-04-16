@@ -1,8 +1,8 @@
-import { Request, Response, Send } from "express";
+import { Request, Response } from "express";
 import User from "../models/User";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/jwt";
-import { RegisterUserType, LoginUserType } from "../types/user";
+import { generateToken, verifyToken } from "../utils/jwt";
+import { RegisterUserType, LoginUserType } from "../types/UserTypes";
 
 interface SendUserType {
   fullName: string;
@@ -18,15 +18,10 @@ const sendUser = (user: RegisterUserType): SendUserType => {
   };
 };
 
+// Register user
 const registerUser = async (req: Request, res: Response) => {
   try {
-    const {
-      fullName,
-      email,
-      password,
-      accountType,
-      rememberMe,
-    }: RegisterUserType = req.body;
+    const { fullName, email, password }: RegisterUserType = req.body;
 
     // Check if user is already registered
     const user = await User.findOne({ email });
@@ -45,25 +40,18 @@ const registerUser = async (req: Request, res: Response) => {
       fullName,
       email,
       password: hashedPassword,
-      accountType,
     });
 
     // Generate JWT token from objectId
     const userId = newUser._id.toString();
     const authToken = generateToken(userId);
 
-    // Set the cookie
-    res.cookie("auth-token", authToken, {
-      maxAge: rememberMe ? 5 * 24 * 60 * 60 * 1000 : 2 * 24 * 60 * 60 * 1000, // maxAge(in ms): rememberMe ? 5 days : 2 days
-      httpOnly: true,
-      sameSite: true,
-    });
-
     // Send the response
     const returnUserData = sendUser(newUser);
     res.status(201).json({
       msg: "Successfully registered!",
       user: returnUserData,
+      authToken,
     });
   } catch (error) {
     const errorMsg = error instanceof Error && error.message;
@@ -73,9 +61,10 @@ const registerUser = async (req: Request, res: Response) => {
   }
 };
 
+// Login user
 const loginUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, rememberMe }: LoginUserType = req.body;
+    const { email, password }: LoginUserType = req.body;
 
     // Check if user exist
     const user = await User.findOne({ email });
@@ -97,18 +86,12 @@ const loginUser = async (req: Request, res: Response) => {
     const userId = user._id.toString();
     const authToken = generateToken(userId);
 
-    // Set the cookie
-    res.cookie("auth-token", authToken, {
-      maxAge: rememberMe ? 5 * 24 * 60 * 60 * 1000 : 2 * 24 * 60 * 60 * 1000, // maxAge(in ms): rememberMe ? 5 days : 2 days
-      httpOnly: true,
-      sameSite: true,
-    });
-
     // Return the user
     const returnUserData = sendUser(user);
     res.status(200).json({
       msg: "Successfully logged in!",
       user: returnUserData,
+      authToken,
     });
   } catch (error) {
     const errorMsg = error instanceof Error && error.message;
@@ -118,4 +101,44 @@ const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-export { registerUser, loginUser };
+// Logout user
+const logoutUser = async (req: Request, res: Response) => {
+  try {
+    res.cookie("auth-token", "", { maxAge: 1 });
+    res.status(200).json({
+      msg: "Logout success!",
+    });
+  } catch (error) {
+    const errorMsg = error instanceof Error && error.message;
+    res.status(500).json({
+      msg: errorMsg,
+    });
+  }
+};
+
+// Get user
+const getUser = async (req: Request, res: Response) => {
+  try {
+    const { authToken }: { authToken: string } = req.body;
+    const decodedUserId = verifyToken(authToken);
+
+    const user = await User.findById(decodedUserId);
+    if (!user) {
+      res.status(404).json({
+        msg: "User not found!",
+      });
+    }
+
+    res.status(200).json({
+      msg: "User found!",
+      user: user && sendUser(user),
+    });
+  } catch (error) {
+    const errorMsg = error instanceof Error && error.message;
+    res.status(500).json({
+      msg: errorMsg,
+    });
+  }
+};
+
+export { registerUser, loginUser, logoutUser, getUser };

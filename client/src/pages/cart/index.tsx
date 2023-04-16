@@ -9,16 +9,15 @@ import {
   Typography,
 } from "@mui/material";
 import Image from "next/image";
+import { useCart } from "@/contexts/cartContext";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-const CartProduct = () => {
+const CartProduct = ({ title, id, image, quantity, price }: Cart) => {
   return (
     <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
       <Box sx={{ position: "relative", width: "100px", height: "100px" }}>
-        <Image
-          src="https://source.unsplash.com/featured/?e-commerce,cart,marketting,product"
-          alt="product image"
-          fill={true}
-        />
+        <Image src={image} alt={title} fill={true} />
       </Box>
 
       <Box>
@@ -28,7 +27,7 @@ const CartProduct = () => {
           maxWidth="20rem"
           noWrap
         >
-          Product name: Lorem ipsum dolor sit amet.
+          {title}
         </Typography>
 
         <Box
@@ -40,11 +39,11 @@ const CartProduct = () => {
             width: "100%",
           }}
         >
-          <Typography color="GrayText">Quantity: 3</Typography>
+          <Typography color="GrayText">Quantity: {quantity}</Typography>
           <Typography variant="body1" component="p">
             Total Price:{" "}
             <Typography component="span" color="error.main">
-              $99.00
+              ${quantity * price}
             </Typography>
           </Typography>
         </Box>
@@ -54,8 +53,42 @@ const CartProduct = () => {
 };
 
 const Cart = () => {
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  const { cart } = useCart();
+
+  useEffect(() => {
+    const totalPriceArr = cart.map(
+      (product) => product.quantity * product.price
+    );
+    setTotalPrice(
+      totalPriceArr.reduce(
+        (accumulator, currentValue) => accumulator + currentValue
+      )
+    );
+  }, [cart]);
+
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" sx={{ paddingTop: 2 }}>
+      <Typography variant="h4" component={"h1"} textAlign="center" gutterBottom>
+        Your Shopping Cart
+      </Typography>
+
+      {!cart.length && (
+        <Typography
+          variant="body1"
+          color={"error"}
+          component={"p"}
+          textAlign="center"
+          gutterBottom
+        >
+          No Items in your cart!{" "}
+          <Link href="/" style={{ fontWeight: "bold" }}>
+            Continue Shopping
+          </Link>
+        </Typography>
+      )}
+
       <Paper
         elevation={3}
         sx={{
@@ -72,12 +105,16 @@ const Cart = () => {
           spacing={{ xs: 1, sm: 2, md: 3 }}
           sx={{ maxHeight: "64vh", overflowY: "auto" }}
         >
-          <CartProduct />
-          <CartProduct />
-          <CartProduct />
-          <CartProduct />
-          <CartProduct />
-          <CartProduct />
+          {cart.map((product) => (
+            <CartProduct
+              key={product.id}
+              id={product.id}
+              title={product.title}
+              image={product.image}
+              quantity={product.quantity}
+              price={product.price}
+            />
+          ))}
         </Stack>
 
         <Box
@@ -96,7 +133,7 @@ const Cart = () => {
               color="error.main"
               sx={{ fontSize: "18px", fontWeight: "bold" }}
             >
-              $499.00
+              ${totalPrice}
             </Typography>
           </Typography>
 

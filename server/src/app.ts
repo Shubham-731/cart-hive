@@ -1,24 +1,27 @@
 import express, { Express, Request, Response } from "express";
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
-import authRoutes from "./routes/auth";
 import mongoose from "mongoose";
+import apiRoutes from "./apis";
+import cors from "cors";
 
 // Dotenv config
 config();
 const PORT: string | number = process.env.PORT || 3001;
 const MONGO_URL: string =
   process.env.MONGO_URL || "mongodb://localhost:27017/CartHive";
+const CLIENT_URL: string = process.env.CLIENT_URL || "http://localhost:3000";
 
 const app: Express = express();
 
-// Middle wares
+// Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Routes
-app.use("/auth", authRoutes);
+// API
+app.use("/api", apiRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ msg: "hello world!" });

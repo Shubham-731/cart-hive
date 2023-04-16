@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"cd client && pnpm dev\" \"cd server && pnpm dev\""
+    "dev": "concurrently \"cd client && pnpm dev\" \"cd server && pnpm dev\"",
+    "start": "concurrently \"cd client && pnpm start\" \"cd server && pnpm start\""
   },
   "keywords": [],
   "author": "",

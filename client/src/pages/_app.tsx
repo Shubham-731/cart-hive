@@ -8,6 +8,7 @@ import theme from "@/utils/theme";
 import createEmotionCache from "@/utils/createEmotionCache";
 import ResponsiveAppBar from "@/components/AppBar";
 import { FC } from "react";
+import Providers from "@/contexts";
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -29,17 +30,21 @@ export default function MyApp(props: MyAppProps) {
         <title>Cart Hive</title>
       </Head>
       <ThemeProvider theme={theme}>
-        <CssBaseline />
-
-        {/* Check if component layout is defined */}
-        {Component.getLayout ? (
-          Component.getLayout(<Component {...pageProps} />)
-        ) : (
+        <Providers>
           <>
-            <ResponsiveAppBar />
-            <Component {...pageProps} />
+            <CssBaseline />
+
+            {/* Check if component layout is defined */}
+            {Component.getLayout ? (
+              Component.getLayout(<Component {...pageProps} />)
+            ) : (
+              <>
+                <ResponsiveAppBar />
+                <Component {...pageProps} />
+              </>
+            )}
           </>
-        )}
+        </Providers>
       </ThemeProvider>
     </CacheProvider>
   );

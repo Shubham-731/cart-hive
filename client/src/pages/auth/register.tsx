@@ -10,30 +10,34 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import { useFormik } from "formik";
-
-interface FormValues {
-  fullName: string;
-  email: string;
-  password: string;
-  accountType: string;
-  rememberMe: boolean;
-}
+import { useAuth } from "@/contexts/authContext";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 export default function Register() {
-  const initialValues: FormValues = {
+  const { user, register } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.push("/");
+    }
+  }, [user]);
+
+  const initialValues: RegisterFormValTypes = {
     fullName: "",
     email: "",
     password: "",
-    accountType: "",
     rememberMe: false,
   };
 
   const formik = useFormik({
     initialValues,
     async onSubmit(values, formikHelpers) {
-      console.log(values);
+      await register(values);
+      formikHelpers.setSubmitting(false);
     },
   });
 
@@ -110,20 +114,6 @@ export default function Register() {
               id="password"
               autoComplete="current-password"
             />
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="select-account-type">Account type</InputLabel>
-              <Select
-                labelId="select-account-type"
-                id="account-type-selector"
-                label="Account type"
-                name="accountType"
-                value={formik.values.accountType}
-                onChange={formik.handleChange}
-              >
-                <MenuItem value="buyer">Buyer</MenuItem>
-                <MenuItem value="seller">Seller</MenuItem>
-              </Select>
-            </FormControl>
             <FormControlLabel
               control={
                 <Checkbox
@@ -141,7 +131,11 @@ export default function Register() {
               sx={{ mt: 3, mb: 2 }}
               fullWidth
             >
-              Sign Up
+              {formik.isValidating === false && formik.isSubmitting === true ? (
+                <CircularProgress sx={{ color: "white" }} size={24} />
+              ) : (
+                "Sign Up"
+              )}
             </Button>
             <Grid container>
               <Grid item>
