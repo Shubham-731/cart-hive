@@ -1,5 +1,7 @@
-import Cart from "@/pages/cart";
 import { useContext, createContext, useReducer, useEffect } from "react";
+import axios from "axios";
+import shortid from "shortid";
+import { useRouter } from "next/router";
 
 // Types
 interface CartContextType {
@@ -7,6 +9,15 @@ interface CartContextType {
   addToCart: (product: Cart) => void;
   removeFromCart: (id: number) => void;
   updateQty: (id: number, qty: number) => void;
+  createCheckout: () => Promise<void>;
+  clearCart: () => void;
+}
+
+// Checkout request body
+interface CheckoutReqBody {
+  orderId: string;
+  products: Cart[];
+  authToken: string;
 }
 
 type Action =
@@ -21,12 +32,16 @@ type Action =
       id: number;
     };
 
+const serverUrl = process.env.SERVER_URL || "http://localhost:3001";
+
 // Cart context
 const CartContext = createContext<CartContextType>({
   cart: [],
   addToCart: () => {},
   removeFromCart: () => {},
   updateQty: () => {},
+  createCheckout: async () => {},
+  clearCart: () => {},
 });
 
 // Cart reducer
@@ -65,6 +80,8 @@ function cartReducer(state: Cart[], action: Action) {
 function CartContextProvider({ children }: { children: JSX.Element }) {
   const [cart, dispatch] = useReducer(cartReducer, initialCart);
 
+  const router = useRouter();
+
   // Add to cart
   const addToCart = (product: Cart) => {
     dispatch({ type: "added", product });
@@ -80,6 +97,12 @@ function CartContextProvider({ children }: { children: JSX.Element }) {
   // Update quantity
   const updateQty = (id: number, qty: number) => {
     dispatch({ type: "updated_qty", id, qty });
+  };
+
+  // Clear cart
+  const clearCart = () => {
+    localStorage.setItem("cart", JSON.stringify([]));
+    dispatch({ type: "set", cart: [] });
   };
 
   // Set cart stored in localstorage
@@ -98,11 +121,48 @@ function CartContextProvider({ children }: { children: JSX.Element }) {
     }
   }, [cart]);
 
+  // Create checkout session
+  const createCheckout = async () => {
+    try {
+      const authToken =
+        localStorage.getItem("auth-token") ||
+        sessionStorage.getItem("auth-token");
+
+      if (!authToken) {
+        return alert(`You're not authenticated yet. Please signin!`);
+      }
+
+      const reqBody: CheckoutReqBody = {
+        orderId: `order_${shortid.generate()}`,
+        products: cart,
+        authToken,
+      };
+      const res = await axios.post(
+        `${serverUrl}/api/checkout/create-session`,
+        reqBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.status === 200) {
+        router.push(res.data.checkoutUrl);
+      }
+    } catch (error) {
+      alert(error instanceof Error && error.message);
+      console.log(error);
+    }
+  };
+
   const contextValues: CartContextType = {
     cart,
     addToCart,
     removeFromCart,
     updateQty,
+    createCheckout,
+    clearCart,
   };
 
   return (

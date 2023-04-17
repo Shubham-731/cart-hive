@@ -22,6 +22,9 @@ dependencies:
   mongoose:
     specifier: ^7.0.3
     version: 7.0.3
+  stripe:
+    specifier: ^12.1.1
+    version: 12.1.1
 
 devDependencies:
   '@types/bcryptjs':
@@ -1110,6 +1113,14 @@ packages:
     dependencies:
       ansi-regex: 5.0.1
     dev: true
+
+  /stripe@12.1.1:
+    resolution: {integrity: sha512-vn74vXtZeJx18oGzA0AhL818euhLF/juCgkKrJfAS1Y0bp5/EzQKPuc/75qQUvY43nNGIkgOVb3kUBuyoeqEkA==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@types/node': 18.15.11
+      qs: 6.11.0
+    dev: false
 
   /supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
