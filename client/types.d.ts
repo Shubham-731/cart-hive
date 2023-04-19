@@ -29,7 +29,18 @@ interface Product {
 interface Cart {
   id: number;
   title: string;
+  description: string;
   image: string;
   quantity: number;
   price: number;
+}
+
+interface OrderedProduct {
+  orderId: string;
+  quantity: number;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+  status: string;
 }

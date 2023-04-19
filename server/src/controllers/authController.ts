@@ -117,16 +117,17 @@ const logoutUser = async (req: Request, res: Response) => {
 };
 
 // Get user
-const getUser = async (req: Request, res: Response) => {
+const getUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { authToken }: { authToken: string } = req.body;
     const decodedUserId = verifyToken(authToken);
 
     const user = await User.findById(decodedUserId);
     if (!user) {
-      res.status(404).json({
+      res.json({
         msg: "User not found!",
       });
+      return;
     }
 
     res.status(200).json({

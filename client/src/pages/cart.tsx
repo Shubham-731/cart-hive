@@ -14,15 +14,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import runFireworks from "@/utils/runFirewalls";
-import { GetServerSidePropsContext } from "next";
+import axios from "axios";
 
-type CartProps = {
-  query:
-    | { success: true; canceled: false }
-    | { success: false; canceled: true };
-};
-
-const CartProduct = ({ title, id, image, quantity, price }: Cart) => {
+const CartProduct = ({
+  title,
+  id,
+  image,
+  quantity,
+  price,
+  description,
+}: Cart) => {
   return (
     <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
       <Box sx={{ position: "relative", width: "100px", height: "100px" }}>
@@ -78,14 +79,68 @@ const Cart = () => {
   const { cart, clearCart, createCheckout } = useCart();
   const router = useRouter();
 
+  // Create order
+  const createOrder = async (
+    products: Cart[],
+    orderId: string
+  ): Promise<void> => {
+    try {
+      // Server url
+      const serverUrl: string =
+        process.env.SERVER_URL || "http://localhost:3001";
+
+      // Get authToken
+      const authToken: string =
+        localStorage.getItem("auth-token") ||
+        sessionStorage.getItem("auth-token") ||
+        "";
+      if (!authToken) {
+        alert("Failed to create order!");
+        router.push("/auth/login");
+      }
+
+      // Make the resquest
+      const updatedProducts = products.map((product) => ({
+        ...product,
+        orderId,
+        status: "ordered",
+      }));
+      const res = await axios.post(
+        `${serverUrl}/api/orders/create`,
+        { authToken, products: updatedProducts },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.status === 201) {
+        clearCart();
+        runFireworks();
+        router.push("/orders");
+      } else {
+        alert("Unable to create your order!");
+      }
+    } catch (error) {
+      alert(error instanceof Error && error.message);
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
-    if (router.query.success) {
-      runFireworks();
-      alert("Successfully ordered!");
-      clearCart();
+    // Extract order_id and success or cancel params
+    const orderId: string = router.query.order_id?.toString() || "";
+    if (router.query.success && orderId) {
+      const storedCart: string = localStorage.getItem("cart") || "";
+      const cartProducts: Cart[] = JSON.parse(storedCart);
+
+      if (cartProducts.length) {
+        createOrder(cartProducts, orderId);
+      }
     }
 
-    if (router.query.canceled) {
+    if (router.query.canceled && orderId) {
       alert("Order canceled!");
       router.push("/cart");
     }
@@ -133,6 +188,7 @@ const Cart = () => {
                 id={product.id}
                 title={product.title}
                 image={product.image}
+                description={product.description}
                 quantity={product.quantity}
                 price={product.price}
               />
@@ -187,14 +243,5 @@ const Cart = () => {
     </Container>
   );
 };
-
-export function getServerSideProps(context: GetServerSidePropsContext) {
-  const { query } = context;
-  return {
-    props: {
-      query,
-    },
-  };
-}
 
 export default Cart;

@@ -8,9 +8,21 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/authContext";
+import { NextRouter } from "next/router";
+import axios from "axios";
 
-const OrderedProduct = () => {
+const OrderedProduct = ({
+  title,
+  description,
+  status,
+  orderId,
+  price,
+  quantity,
+  image,
+}: OrderedProduct) => {
   return (
     <Paper
       elevation={1}
@@ -31,8 +43,8 @@ const OrderedProduct = () => {
         }}
       >
         <Image
-          src="https://source.unsplash.com/featured/?e-commerce,cart,marketting,product"
-          alt="Ordered product"
+          src={image}
+          alt={title}
           fill={true}
           style={{ borderRadius: "0.5rem" }}
         />
@@ -48,7 +60,7 @@ const OrderedProduct = () => {
           }}
         >
           <Typography variant="h6" component="p" color="Highlight">
-            Order ID: AXVM2932
+            Order ID: {orderId}
           </Typography>
           <Typography
             variant="caption"
@@ -63,12 +75,12 @@ const OrderedProduct = () => {
               fontSize: "18px",
             }}
           >
-            #ORDERED
+            {status}
           </Typography>
         </Box>
 
         <Typography variant="h5" component="p">
-          Product name
+          {title}
         </Typography>
         <Typography
           variant="body2"
@@ -76,10 +88,7 @@ const OrderedProduct = () => {
           color="GrayText"
           width="fit-content"
         >
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero error
-          quibusdam nemo pariatur dicta exercitationem consectetur eum,
-          voluptatum architecto rerum excepturi doloremque nulla soluta optio
-          quia. Molestias nobis aliquam voluptas animi minima!
+          {description}
         </Typography>
         <Box
           sx={{
@@ -95,10 +104,10 @@ const OrderedProduct = () => {
             variant="h6"
             component="p"
           >
-            Price: $499.00
+            Total Price: ${price * quantity}
           </Typography>
           <Typography variant="body1" component="p" color="GrayText">
-            Order Date: 15 April 2023
+            Quantity: {quantity}
           </Typography>
         </Box>
       </Stack>
@@ -107,8 +116,56 @@ const OrderedProduct = () => {
 };
 
 const Orders = () => {
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [orders, setOrders] = useState<OrderedProduct[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | false>(false);
+
+  const { user } = useAuth();
+  const router: NextRouter = useRouter();
+
+  // Verify user
+  useEffect(() => {
+    if (!user) {
+      router.push("/auth/login");
+    }
+  }, [user]);
+
+  // Get orders
+  useEffect(() => {
+    const getOrders = async (): Promise<void> => {
+      const serverUrl = process.env.SERVER_URL || "http://localhost:3001";
+
+      try {
+        const authToken: string =
+          localStorage.getItem("auth-token") ||
+          sessionStorage.getItem("auth-token") ||
+          "";
+
+        const res = await axios.post(
+          `${serverUrl}/api/orders`,
+          { authToken },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (res.status === 200) {
+          setOrders(res.data.orders);
+        }
+      } catch (error) {
+        setErrorMsg(error instanceof Error && error.message);
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      getOrders();
+    }
+  }, [user]);
 
   return (
     <>
@@ -122,15 +179,29 @@ const Orders = () => {
         </Typography>
 
         <Stack spacing={2} divider={<Divider />}>
-          <OrderedProduct />
-          <OrderedProduct />
-          <OrderedProduct />
-          <OrderedProduct />
+          {orders.map((order: OrderedProduct, i: number) => (
+            <OrderedProduct
+              orderId={order.orderId}
+              quantity={order.quantity}
+              title={order.title}
+              description={order.description}
+              price={order.price}
+              image={order.image}
+              status={order.status}
+              key={i}
+            />
+          ))}
         </Stack>
 
-        {/* <Typography color="error" textAlign={"center"}>
-          No orders yet!
-        </Typography> */}
+        <Typography color="error" textAlign={"center"}>
+          {loading
+            ? "Fetching orders..."
+            : !orders.length
+            ? "No orders yet!"
+            : errorMsg
+            ? errorMsg
+            : ""}
+        </Typography>
       </Container>
     </>
   );

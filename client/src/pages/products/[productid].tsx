@@ -19,6 +19,7 @@ import { useCart } from "@/contexts/cartContext";
 
 const createCartProduct = (product: Product) => ({
   title: product.title,
+  description: product.description,
   id: product.id,
   price: product.price,
   image: product.image,
@@ -30,7 +31,6 @@ export default function Product() {
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState<boolean | string>("");
   const [prodQty, setProdQty] = useState(1);
-  console.log(prodQty);
 
   const { updateQty, addToCart, removeFromCart, cart } = useCart();
 

@@ -1,5 +1,5 @@
 import { useContext, createContext, useReducer, useEffect } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import shortid from "shortid";
 import { useRouter } from "next/router";
 
@@ -151,8 +151,13 @@ function CartContextProvider({ children }: { children: JSX.Element }) {
         router.push(res.data.checkoutUrl);
       }
     } catch (error) {
-      alert(error instanceof Error && error.message);
-      console.log(error);
+      const errorRes = error instanceof AxiosError && error.response;
+      if (errorRes && errorRes.status === 401) {
+        router.push("/auth/login");
+      } else {
+        alert(error instanceof Error && error.message);
+        console.log(error);
+      }
     }
   };
 

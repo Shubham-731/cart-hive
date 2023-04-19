@@ -1,12 +1,11 @@
-import mongoose from "mongoose";
-
-interface CartProduct {
-  userId: mongoose.Types.ObjectId;
-  productId: number;
+interface OrderedProduct {
+  orderId: string;
+  quantity: string;
   title: string;
-  quantity: number;
+  description: string;
   price: number;
   image: string;
+  status: string;
 }
 
-export { CartProduct };
+export { OrderedProduct };
