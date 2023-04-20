@@ -7,11 +7,9 @@ import Stripe from "stripe";
 
 // .env
 config();
-const CLIENT_ADDRESS = process.env.CLIENT_ADDRESS || "http://localhost:3000";
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-if (!WEBHOOK_SECRET || !CLIENT_ADDRESS) {
-  throw new Error("Please populate environment variables properly!");
-}
+const CLIENT_ADDRESS: string =
+  process.env.CLIENT_ADDRESS || "http://localhost:3000";
+const WEBHOOK_SECRET: string = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 // Types
 interface Product {
@@ -98,6 +96,10 @@ const checkoutHandler = async (req: Request, res: Response): Promise<void> => {
 };
 
 const webhookHandler = async (req: Request, res: Response): Promise<void> => {
+  if (!WEBHOOK_SECRET) {
+    throw new Error("Webhook scret not found!");
+  }
+
   try {
     const stripeSign: string | string[] = req.headers["stripe-signature"] || "";
     const payload: string = JSON.stringify(req.body);
