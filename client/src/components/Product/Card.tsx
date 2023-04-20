@@ -61,7 +61,7 @@ export default function ProductCard({
               </Typography>
               <Rating
                 name="read-only"
-                value={rating.rate}
+                value={rating?.rate}
                 precision={0.1}
                 readOnly
               />
@@ -70,7 +70,7 @@ export default function ProductCard({
                 variant="body2"
                 color="text.secondary"
               >
-                ({rating.count})
+                ({rating?.count})
               </Typography>
             </Box>
           </CardContent>
