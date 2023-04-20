@@ -7,8 +7,7 @@ import Stripe from "stripe";
 
 // .env
 config();
-const CLIENT_ADDRESS: string =
-  process.env.CLIENT_ADDRESS || "http://localhost:3000";
+const CLIENT_URL: string = process.env.CLIENT_URL || "http://localhost:3000";
 const WEBHOOK_SECRET: string = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 // Types
@@ -71,8 +70,8 @@ const checkoutHandler = async (req: Request, res: Response): Promise<void> => {
     // Create stripe session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      success_url: `${CLIENT_ADDRESS}/cart?success=true&order_id=${orderId}`,
-      cancel_url: `${CLIENT_ADDRESS}/cart?canceled=true&order_id=${orderId}`,
+      success_url: `https://cart-hive-client.vercel.app/cart?success=true&order_id=${orderId}`,
+      cancel_url: `https://cart-hive-client.vercel.app/cart?canceled=true&order_id=${orderId}`,
       line_items: formatProducts(products),
       customer_email: user?.email,
       metadata: {
